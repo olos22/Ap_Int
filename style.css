@@ -1,0 +1,151 @@
+body 
+{
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f8f8f8;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 0;
+}
+.todo-container
+{
+    background: white;
+    border: 2px solid #aaa;
+    border-radius: 10px;
+    width: 320px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+}
+.search-bar 
+{
+    border-bottom: 2px solid #ddd;
+    padding: 10px;
+    background: #fafafa;
+}
+.search-bar input 
+{
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #bbb;
+    outline: none;
+    padding: 6px;
+    font-size: 14px;
+}
+#taskList 
+{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.task 
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #aaa;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.task:last-child 
+{
+    border-bottom: none;
+}
+.task:hover 
+{
+    background-color: #f5f5f5;
+}
+.task.editing 
+{
+    background-color: #e3f2fd;
+    border: 1px solid #2196f3;
+}
+.task input[type="checkbox"] 
+{
+    margin-right: 8px;
+}
+.taskText 
+{
+    flex: 1;
+    font-size: 14px;
+}
+.deadline 
+{
+    font-size: 12px;
+    color: #666;
+    margin-left: 6px;
+}
+.deleteBtn 
+{
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #888;
+    margin-left: 8px;
+    transition: color 0.2s ease;
+    padding: 4px 8px;
+}
+.deleteBtn:hover 
+{
+    color: #c00;
+}
+.new-task-form 
+{
+    border-top: 2px solid #ddd;
+    display: flex;
+    padding: 8px 10px;
+    background: #fafafa;
+    gap: 4px;
+}
+.new-task-form input[type="text"],
+.new-task-form input[type="date"] 
+{
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 6px;
+    font-size: 13px;
+    flex: 1;
+}
+.new-task-form button 
+{
+    border: 1px solid #bbb;
+    background: white;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.new-task-form button:hover 
+{
+    background: #eaeaea;
+}
+mark 
+{
+    background: yellow;
+    color: black;
+}
+input:focus 
+{
+    outline: none;
+    border-color: #888;
+}
+.edit-input, .edit-date 
+{
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+}
+.edit-input 
+{
+    width: 200px;
+}
+.edit-date 
+{
+    width: 120px;
+}
