@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map Puzzle</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="leaflet-1.7.1/leaflet.css" />
-    <script src="leaflet-1.7.1/leaflet-src.js"></script>
-    <script src="leaflet-1.7.1/leaflet-providers.js"></script>
-    <script src="leaflet-1.7.1/leaflet-image.js"></script>
+    <title>Aplikacja Pogody</title>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="container">
-        <div id="kontener1">
-            <div id="map"></div>
-            <div id="puzzle"></div>
+    <div class="search-container">
+        <input type="text" id="cityInput" placeholder="Wprowadź nazwę miasta">
+        <button id="weatherButton">Pogoda</button>
+    </div>
+    <div id="weatherResults">
+        <div id="currentWeather">
+            <h3>Aktualna pogoda</h3>
+            <div id="currentData">
+            </div>
         </div>
-        <div id="kontener2">
-            <button id="getLocation">Zlokalizuj się</button>
-            <button id="saveMap">Zapisz mapę</button>
+        <div id="forecast">
+            <h3>Prognoza 5 dniowa</h3>
+            <div id="forecastData">	
+            </div>
         </div>
     </div>
     <script src="script.js"></script>

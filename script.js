@@ -1,288 +1,133 @@
-class MapPuzzle
+class TheWeatherApp
 {
     constructor()
     {
-        this.map = L.map('map').setView([53.430127, 14.564802], 18);
-        this.marker = L.marker([53.430127, 14.564802]).addTo(this.map);
-        this.wrongElements = 16;
-
-        this.initMap();
-        this.createGrid();
+        this.apiKey = "a1364ebf8f2ce633455c3cd33581d44d";
+        this.currentWeatherUrl = "https://api.openweathermap.org/data/2.5/weather?q={query}&appid={apiKey}&units=metric&lang=pl";
+        this.forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?q={query}&appid={apiKey}&units=metric&lang=pl";
+        this.iconUrl = "https://openweathermap.org/img/wn/{iconName}@2x.png";
+        this.currentWeatherUrl = this.currentWeatherUrl.replace("{apiKey}", this.apiKey);
+        this.forecastUrl = this.forecastUrl.replace("{apiKey}", this.apiKey);
         this.setupEventListeners();
-        this.requestPermissions();
-
-        setTimeout(() =>
-        {
-            this.map.invalidateSize();
-        }, 500);
-    }
-    initMap()
-    {
-        L.tileLayer.provider('Esri.WorldImagery').addTo(this.map);
-    }
-    createGrid()
-    {
-        const mainPuzzle = document.getElementById("puzzle");
-        const table = document.createElement("table");
-        table.id = "grid";
-
-        for (let row = 0; row < 4; row++)
-        {
-            const tr = document.createElement("tr");
-
-            for (let col = 0; col < 4; col++)
-            {
-                const td = document.createElement("td");
-                tr.appendChild(td);
-            }
-
-            table.appendChild(tr);
-        }
-        mainPuzzle.appendChild(table);
-    }
-    requestPermissions()
-    {
-        Notification.requestPermission();
-
-        if (navigator.geolocation)
-        {
-            navigator.geolocation.getCurrentPosition(
-                () => console.log("Geolocation granted"),
-                () => console.log("Geolocation denied")
-            );
-        }
     }
     setupEventListeners()
     {
-        document.getElementById("saveMap").addEventListener("click", () => this.saveMap());
-        document.getElementById("getLocation").addEventListener("click", () => this.getLocation());
-
-        this.setupDragAndDrop();
-    }
-    setupDragAndDrop()
-    {
-        const cells = document.querySelectorAll("#grid td");
-
-        cells.forEach((cell, index) =>
+        document.getElementById("weatherButton").addEventListener("click", () =>
         {
-            const x = index % 4;
-            const y = Math.floor(index / 4);
-            cell.dataset.posX = x;
-            cell.dataset.posY = y;
-
-            cell.addEventListener("dragenter", () =>
-            {
-                cell.style.border = "2px solid #7FE9D9";
-            });
-
-            cell.addEventListener("dragleave", () =>
-            {
-                cell.style.border = "1px dashed #7f7fe9";
-            });
-
-            cell.addEventListener("dragover", (e) =>
-            {
-                e.preventDefault();
-            });
-
-            cell.addEventListener("drop", (e) =>
-            {
-                e.preventDefault();
-                cell.style.border = "1px dashed #7f7fe9";
-                this.handleDrop(e, cell);
-            });
-        });
-
-        document.addEventListener("dragstart", (e) =>
-        {
-            if (e.target.classList.contains("element"))
-            {
-                e.dataTransfer.setData("text", e.target.id);
-            }
+            this.getWeather();
         });
     }
-    handleDrop(e, cell)
+    getWeather()
     {
-        const elementID = e.dataTransfer.getData("text");
-        const element = document.getElementById(elementID);
-        let changed = false;
-
-        if (cell.firstChild)
+        const chosenCity = document.getElementById("cityInput").value.trim();
+        
+        if (!chosenCity)
         {
-            const elementsContainer = document.getElementById("elements");
-            elementsContainer.appendChild(cell.firstChild);
-            changed = true;
-        }
-
-        cell.appendChild(element);
-        const isElementCorrect = this.checkElementPosition(element, cell);
-        this.updatePuzzleData(changed, isElementCorrect);
-    }
-    checkElementPosition(element, cell)
-    {
-        const correctXaxis = element.dataset.correctXaxis;
-        const correctYaxis = element.dataset.correctYaxis;
-        const cellX = cell.dataset.posX;
-        const cellY = cell.dataset.posY;
-
-        return correctXaxis === cellX && correctYaxis === cellY;
-    }
-    updatePuzzleData(wasElementReplaced, isElementCorrect)
-    {
-        if (isElementCorrect)
-        {
-            this.wrongElements -= 1;
-        }
-        else
-        {
-            if (wasElementReplaced)
-            {
-                this.wrongElements += 1;
-            }
-        }
-        if (this.wrongElements < 1)
-        {
-            this.notifyCompletion();
-        }
-    }
-    notifyCompletion()
-    {
-        if (!("Notification" in window))
-        {
-            alert("Ta przeglądarka nie obsługuje powiadomień");
+            alert("Proszę wprowadzić nazwę miasta");
             return;
         }
-        if (Notification.permission === "granted")
-        {
-            new Notification("Wszystkie elementy są na swoim miejscu!");
-            console.log("Wszystkie elementy są na swoim miejscu!")
-        }
-        else if (Notification.permission !== "denied")
-        {
-            Notification.requestPermission().then((permission) =>
-            {
-                if (permission === "granted")
-                {
-                    new Notification("Wszystkie elementy są na swoim miejscu!");
-                }
-            });
-        }
+        this.getCurrentWeather(chosenCity);
+        this.getForecast(chosenCity);
     }
-    saveMap()
+    getCurrentWeather(city)
     {
-        this.map.invalidateSize();
-        setTimeout(() =>
+        const url = this.currentWeatherUrl.replace("{query}", city);
+        const request = new XMLHttpRequest();
+        
+        request.open("GET", url, true);
+        request.onload = () =>
         {
-            leafletImage(this.map, (err, canvas) =>
-            {
-                if (err)
-                {
-                    console.error(err);
-                    return;
-                }
-
-                const canvasWidth = 900;
-                const canvasHeight = 616;
-                const elementsRowAmount = 4;
-                const elementWidth = canvasWidth / elementsRowAmount;
-                const elementHeight = canvasHeight / elementsRowAmount;
-
-                const elements = [];
-
-                for (let y = 0; y < elementsRowAmount; y++)
-                {
-                    for (let x = 0; x < elementsRowAmount; x++)
-                    {
-                        const elementCanvas = document.createElement("canvas");
-                        elementCanvas.width = elementWidth;
-                        elementCanvas.height = elementHeight;
-                        const context = elementCanvas.getContext("2d");
-
-                        context.drawImage(
-                            canvas,
-                            x * elementWidth,
-                            y * elementHeight,
-                            elementWidth,
-                            elementHeight,
-                            0,
-                            0,
-                            elementWidth,
-                            elementHeight
-                        );
-
-                        const img = document.createElement("img");
-                        img.src = elementCanvas.toDataURL();
-                        img.height = elementHeight;
-                        img.width = elementWidth;
-                        img.classList.add("element");
-                        img.draggable = true;
-                        img.dataset.correctXaxis = x;
-                        img.dataset.correctYaxis = y;
-
-                        elements.push(img);
-                    }
-                }
-                this.shuffleArray(elements);
-                this.createElementsContainer(elements);
-            });
-        }, 500);
+            this.currentData = JSON.parse(request.responseText);
+			console.log(this.currentData);
+            this.displayWeather();
+        };
+        request.send();
     }
-    shuffleArray(array)
+    getForecast(city)
     {
-        for (let i = array.length - 1; i > 0; i--)
+        const url = this.forecastUrl.replace("{query}", city);
+        
+        fetch(url).then(response => response.json()).then(data =>
         {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-    createElementsContainer(elements)
-    {
-        const existingContainer = document.getElementById("elements");
-        if (existingContainer)
-        {
-            existingContainer.remove();
-        }
-
-        const elementContainer = document.createElement("div");
-        elementContainer.id = "elements";
-
-        elements.forEach((element, index) =>
-        {
-            element.id = `element-${index}`;
-            elementContainer.appendChild(element);
+            this.forecastData = data.list;
+			console.log(data);
+            this.displayWeather();
         });
-
-        document.body.appendChild(elementContainer);
     }
-    getLocation()
+    displayWeather()
     {
-        if (!navigator.geolocation)
+        const currentDataElement = document.getElementById("currentData");
+        const forecastDataElement = document.getElementById("forecastData");
+
+        currentDataElement.innerHTML = "";
+        forecastDataElement.innerHTML = "";
+
+        if (this.currentData)
         {
-            console.log("Geolokacja nie jest dostępna");
-            return;
+            this.displayCurrentWeather(this.currentData, currentDataElement);
         }
+        if (this.forecastData)
+        {
+            this.displayForecastWeather(this.forecastData, forecastDataElement);
+        }
+    }
+    displayCurrentWeather(data, container)
+    {
+        const date = new Date(data.dt * 1000);
+        const dateTimeString = `${date.toLocaleDateString("pl-PL")} ${date.toLocaleTimeString("pl-PL")}`;
+        const temperature = data.main.temp;
+        const feelsLike = data.main.feels_like;
+        const iconName = data.weather[0].icon;
+        const description = data.weather[0].description;
+        const weatherBlock = this.createWeatherBlock(dateTimeString, temperature, feelsLike, iconName, description);
+        container.appendChild(weatherBlock);
+    }
+    displayForecastWeather(data, container)
+    {
+        for (let i = 0; i < data.length; i++)
+        {
+            const weather = data[i];
+            const date = new Date(weather.dt * 1000);
+            const dateTimeString = `${date.toLocaleDateString("pl-PL")} ${date.toLocaleTimeString("pl-PL")}`
+            const temperature = weather.main.temp;
+            const feelsLike = weather.main.feels_like;
+            const iconName = weather.weather[0].icon;
+            const description = weather.weather[0].description;
+            const weatherBlock = this.createWeatherBlock(dateTimeString, temperature, feelsLike, iconName, description);
+            container.appendChild(weatherBlock);
+        }
+    }
+    createWeatherBlock(dateString, temperature, feelsLike, iconName, description)
+    {
+        const weatherBlock = document.createElement("div");
+        weatherBlock.className = "weather-block";
 
-        navigator.geolocation.getCurrentPosition(
-            (position) =>
-            {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+        const dateBlock = document.createElement("div");
+        dateBlock.className = "weather-date";
+        dateBlock.textContent = dateString;
+        weatherBlock.appendChild(dateBlock);
 
-                this.map.setView([lat, lon]);
-                this.map.eachLayer((layer) =>
-                {
-                    if (layer instanceof L.Marker)
-                    {
-                        this.map.removeLayer(layer);
-                    }
-                });
-                this.marker = L.marker([lat, lon]).addTo(this.map);
-            },
-            (error) =>
-            {
-                console.error("Błąd geolokacji:", error);
-            }
-        );
+        const temperatureBlock = document.createElement("div");
+        temperatureBlock.className = "weather-temperature";
+        temperatureBlock.innerHTML = `${temperature} &deg;C`;
+        weatherBlock.appendChild(temperatureBlock);
+
+        const feelsLikeBlock = document.createElement("div");
+        feelsLikeBlock.className = "weather-feels-like";
+        feelsLikeBlock.innerHTML = `Odczuwalna: ${feelsLike} &deg;C`;
+        weatherBlock.appendChild(feelsLikeBlock);
+
+        const weatherIcon = document.createElement("img");
+        weatherIcon.className = "weather-icon";
+        weatherIcon.src = this.iconUrl.replace("{iconName}", iconName);
+        weatherBlock.appendChild(weatherIcon);
+
+        const weatherDescription = document.createElement("div");
+        weatherDescription.className = "weather-description";
+        weatherDescription.textContent = description;
+        weatherBlock.appendChild(weatherDescription);
+		
+        return weatherBlock;
     }
 }
-const mapPuzzle = new MapPuzzle();
+const weatherAppInstance = new TheWeatherApp();
